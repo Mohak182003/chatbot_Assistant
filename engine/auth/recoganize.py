@@ -21,8 +21,7 @@ def AuthenticateFace():
     id = 1  # number of persons you want to Recognize
 
 
-    # Leave first element empty, because OpenCV starts labeling from 1
-    names = ["", "Mohak"] # names, leave first empty bcz counter starts from 0
+    names = ['', 'Mohak']  # names, leave first empty bcz counter starts from 0
 
 
     cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # cv2.CAP_DSHOW to remove warning
@@ -87,4 +86,3 @@ def AuthenticateFace():
     cam.release()
     cv2.destroyAllWindows()
     return flag
-

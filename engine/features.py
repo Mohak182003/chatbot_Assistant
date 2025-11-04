@@ -19,7 +19,7 @@ from engine.helper import extract_yt_term, remove_words
 GEMINI_API_KEY = "AIzaSyA19QdoztlbzrmK1ZAh58818rJbUgG6Rj8"
 genai.configure(api_key=GEMINI_API_KEY)
 
-con = sqlite3.connect("Zia.db")
+con = sqlite3.connect("zia.db")
 cursor = con.cursor()
 
 @eel.expose
@@ -67,7 +67,7 @@ def hotword():
     paud=None
     audio_stream=None
     try:
-        porcupine=pvporcupine.create(keywords=["Zia","alexa"])
+        porcupine=pvporcupine.create(keywords=["zia","alexa"])
         paud=pyaudio.PyAudio()
         audio_stream=paud.open(rate=porcupine.sample_rate,channels=1,format=pyaudio.paInt16,input=True,frames_per_buffer=porcupine.frame_length)
         while True:
