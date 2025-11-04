@@ -1,5 +1,5 @@
-/envjarvis 
+.env
 contacts.csv
-jarvis.db
+Zia.db
 /engine/_pycache_
 /engine/cookies.json

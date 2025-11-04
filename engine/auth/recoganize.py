@@ -18,15 +18,16 @@ def AuthenticateFace():
     font = cv2.FONT_HERSHEY_SIMPLEX  # denotes the font type
 
 
-    id = 2  # number of persons you want to Recognize
+    id = 1  # number of persons you want to Recognize
 
 
-    names = ['', 'Mohak']  # names, leave first empty bcz counter starts from 0
+    # Leave first element empty, because OpenCV starts labeling from 1
+    names = ["", "Mohak"] # names, leave first empty bcz counter starts from 0
 
 
     cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # cv2.CAP_DSHOW to remove warning
-    cam.set(3, 640)  # set video FrameWidht
-    cam.set(4, 480)  # set video FrameHeight
+    cam.set(3, 640)  # set video FrameWidth
+    cam.set(4, 480)  # cv2.CAP_DSHOW to remove warning, set video FrameHeight
 
     # Define min window size to be recognized as a face
     minW = 0.1*cam.get(3)
@@ -86,3 +87,4 @@ def AuthenticateFace():
     cam.release()
     cv2.destroyAllWindows()
     return flag
+

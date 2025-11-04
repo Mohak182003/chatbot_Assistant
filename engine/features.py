@@ -19,7 +19,7 @@ from engine.helper import extract_yt_term, remove_words
 GEMINI_API_KEY = "AIzaSyA19QdoztlbzrmK1ZAh58818rJbUgG6Rj8"
 genai.configure(api_key=GEMINI_API_KEY)
 
-con = sqlite3.connect("jarvis.db")
+con = sqlite3.connect("Zia.db")
 cursor = con.cursor()
 
 @eel.expose
@@ -67,7 +67,7 @@ def hotword():
     paud=None
     audio_stream=None
     try:
-        porcupine=pvporcupine.create(keywords=["jarvis","alexa"])
+        porcupine=pvporcupine.create(keywords=["Zia","alexa"])
         paud=pyaudio.PyAudio()
         audio_stream=paud.open(rate=porcupine.sample_rate,channels=1,format=pyaudio.paInt16,input=True,frames_per_buffer=porcupine.frame_length)
         while True:
@@ -108,15 +108,15 @@ def hotword():
 # def whatsApp(mobile_no, message, flag, name):
 #     if flag == 'message':
 #         target_tab = 12
-#         jarvis_message = "message send successfully to "+name
+#         zia_message = "message send successfully to "+name
 #     elif flag == 'call':
 #         target_tab = 7
 #         message = ''
-#         jarvis_message = "calling to "+name
+#         zia_message = "calling to "+name
 #     else:
 #         target_tab = 6
 #         message = ''
-#         jarvis_message = "staring video call with "+name
+#         zia_message = "staring video call with "+name
 
 #     encoded_message = quote(message)
 #     whatsapp_url = f"whatsapp://send?phone={mobile_no}&text={encoded_message}"
@@ -128,7 +128,7 @@ def hotword():
 #     for i in range(1, target_tab):
 #         pyautogui.hotkey('tab')
 #     pyautogui.hotkey('enter')
-#     speak(jarvis_message)
+#     speak(zia_message)
 
 # Replace hugchat with Gemini
 def chatBot(query):
@@ -152,25 +152,4 @@ def chatBot(query):
     
     return response
 
-def makeCall(name, mobileNo):
-    mobileNo =mobileNo.replace(" ", "")
-    speak("Calling "+name)
-    command = 'adb shell am start -a android.intent.action.CALL -d tel:'+mobileNo
-    os.system(command)
 
-def sendMessage(message, mobileNo, name):
-    from engine.helper import replace_spaces_with_percent_s, goback, keyEvent, tapEvents, adbInput
-    message = replace_spaces_with_percent_s(message)
-    mobileNo = replace_spaces_with_percent_s(mobileNo)
-    speak("sending message")
-    goback(4)
-    time.sleep(1)
-    keyEvent(3)
-    tapEvents(473.0, 2490.3)
-    tapEvents(954.7, 2528.1)
-    adbInput(mobileNo)
-    tapEvents(396.5, 563.5)
-    tapEvents(315.0, 2557.6)
-    adbInput(message)
-    tapEvents(1105.5, 1548.4)
-    speak("message send successfully to "+name)
