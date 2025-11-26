@@ -129,3 +129,4 @@ def allCommands(message=1):
         print("error")
     
     eel.ShowHood()
+    
