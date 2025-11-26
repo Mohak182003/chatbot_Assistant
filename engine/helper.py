@@ -26,23 +26,17 @@ def remove_words(input_string, words_to_remove):
 
 
 
-# key events like receive call, stop call, go back
+# Placeholder functions for mobile control
 def keyEvent(key_code):
-    command =  f'adb shell input keyevent {key_code}'
-    os.system(command)
+    print(f"Mobile control disabled: key event {key_code}")
     time.sleep(1)
 
-# Tap event used to tap anywhere on screen
 def tapEvents(x, y):
-    command =  f'adb shell input tap {x} {y}'
-    os.system(command)
+    print(f"Mobile control disabled: tap at {x}, {y}")
     time.sleep(1)
 
-# Input Event is used to insert text in mobile
 def adbInput(message):
-    command =  f'adb shell input text "{message}"'
-    os.system(command)
-    time.sleep(1)
+    print(f"Mobile control disabled: input '{message}'")
 
 # to go complete back
 def goback(key_code):

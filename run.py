@@ -36,21 +36,55 @@ def startJarvis():
     @eel.expose
     def init():
         print("Frontend connected. Starting initialization sequence.")
-        subprocess.call([r'device.bat'])
-        eel.hideLoader()
-        speak("Ready for Face Authentication")
         
-        flag = recoganize.AuthenticateFace()
-
-        if flag == 1:
-            eel.hideFaceAuth()
-            speak("Face Authentication Successful")
-            eel.hideFaceAuthSuccess()
-            speak("Hello, Welcome Sir, How can I Help You?")
+        # Skip device connection
+        print("Skipping device connection...")
+            
+        eel.hideLoader()
+        
+        # Try face authentication if files exist, otherwise skip
+        try:
+            import os
+            trainer_file = os.path.join('engine', 'auth', 'trainer', 'trainer.yml')
+            haarcascade_file = os.path.join('engine', 'auth', 'haarcascade_frontalface_default.xml')
+            
+            if os.path.exists(trainer_file) and os.path.exists(haarcascade_file):
+                print("Starting face authentication...")
+                flag = recoganize.AuthenticateFace()
+                if flag == 1:
+                    eel.hideFaceAuth()
+                    speak("Face authentication successful")
+                    eel.hideFaceAuthSuccess()
+                else:
+                    speak("Face authentication failed, continuing in limited mode")
+                    eel.hideFaceAuth()
+                    eel.hideFaceAuthSuccess()
+            else:
+                print("Face authentication files not found, skipping...")
+                eel.hideFaceAuth()
+                eel.hideFaceAuthSuccess()
+                
+            # Initialize Gemini API with error handling
+            try:
+                load_dotenv()
+                api_key = os.getenv("GEMINI_API_KEY")
+                if not api_key:
+                    raise ValueError("GEMINI_API_KEY not found in .env file")
+                genai.configure(api_key=api_key)
+                speak("Initialization complete. How can I help you today?")
+            except Exception as e:
+                print(f"Gemini API initialization warning: {e}")
+                speak("Warning: Some features may be limited due to configuration issues.")
+                
             eel.hideStart()
-            playAssistantSound()
-        else:
-            speak("Face Authentication Failed")
+            
+        except Exception as e:
+            print(f"Error during initialization: {e}")
+            # Continue with minimal functionality
+            eel.hideFaceAuth()
+            eel.hideFaceAuthSuccess()
+            eel.hideStart()
+            speak("Starting in limited mode. Some features may not be available.")
 
     try:
         eel.start(

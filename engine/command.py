@@ -15,30 +15,60 @@ def speak(text):
     engine.runAndWait()
 
 
-def takecommand():
-
+def takecommand(timeout=3, phrase_time_limit=5):
     r = sr.Recognizer()
-
-    with sr.Microphone() as source:
-        print('listening....')
-        eel.DisplayMessage('listening....')
-        r.pause_threshold = 1
-        r.adjust_for_ambient_noise(source)
-        
-        audio = r.listen(source, 10, 6)
-
+    
+    # Adjust these parameters for better recognition
+    r.energy_threshold = 3000  # Adjust based on your environment (lower for more sensitivity)
+    r.dynamic_energy_threshold = True
+    r.pause_threshold = 0.8
+    
+    print("\nListening... (speak now)")
+    eel.DisplayMessage("Listening...")
+    
     try:
-        print('recognizing')
-        eel.DisplayMessage('recognizing....')
-        query = r.recognize_google(audio, language='en-in')
-        print(f"user said: {query}")
-        eel.DisplayMessage(query)
-        time.sleep(2)
+        with sr.Microphone() as source:
+            # Adjust for ambient noise
+            r.adjust_for_ambient_noise(source, duration=0.5)
+            
+            try:
+                # Listen with shorter timeouts
+                audio = r.listen(source, timeout=timeout, phrase_time_limit=phrase_time_limit)
+                
+                print("Recognizing...")
+                eel.DisplayMessage("Recognizing...")
+                
+                # Try Google Web Speech API
+                try:
+                    query = r.recognize_google(audio, language='en-in')
+                    print(f"You said: {query}")
+                    eel.DisplayMessage(query)
+                    return query.lower().strip()
+                    
+                except sr.UnknownValueError:
+                    print("Google Speech Recognition could not understand audio")
+                    return ""
+                    
+                except sr.RequestError as e:
+                    print(f"Could not request results from Google Speech Recognition service; {e}")
+                    return ""
+                
+            except sr.WaitTimeoutError:
+                print("No speech detected within the timeout period.")
+                return ""
+                
+    except OSError as e:
+        print(f"Microphone error: {e}")
+        print("Please check if your microphone is properly connected.")
+        eel.DisplayMessage("Microphone not found")
+        return ""
         
     except Exception as e:
+        print(f"Unexpected error in speech recognition: {e}")
         return ""
     
-    return query.lower()
+    return ""
+
 
 @eel.expose
 def allCommands(message=1):

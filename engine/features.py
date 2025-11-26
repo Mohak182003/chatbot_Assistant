@@ -15,9 +15,35 @@ import pvporcupine
 import google.generativeai as genai
 from engine.helper import extract_yt_term, remove_words
 
-# Gemini configuration (Replace with your own API key)
-GEMINI_API_KEY = "AIzaSyA19QdoztlbzrmK1ZAh58818rJbUgG6Rj8"
-genai.configure(api_key=GEMINI_API_KEY)
+# Gemini configuration - Load from environment variables
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get API key from environment variable or use empty string if not found
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+
+# Configure Gemini with the API key
+if GEMINI_API_KEY:
+    try:
+        # Initialize with the API key
+        genai.configure(
+            api_key=GEMINI_API_KEY,
+            transport='rest',  # Try with REST transport if default fails
+        )
+        
+        # Test the connection
+        try:
+            genai.list_models()
+        except Exception as e:
+            print(f"Warning: Could not connect to Gemini API: {str(e)}")
+            
+    except Exception as e:
+        print(f"Error initializing Gemini: {str(e)}")
+else:
+    print("Warning: GEMINI_API_KEY not found in environment variables")
 
 con = sqlite3.connect("zia.db")
 cursor = con.cursor()
@@ -91,45 +117,99 @@ def hotword():
 
 # Replace hugchat with Gemini
 def chatBot(query):
-    user_input = query.lower()
-    try:
-        # NOTE: Gemini-2.5-flash ajun release zala nahiye. Gemini-1.5-flash vapra.
-        model = genai.GenerativeModel("models/gemini-1.5-flash") 
-        response_obj = model.generate_content(user_input)
-        response = response_obj.text
-        if not response:
-            response = "I could not get a response."
-    except Exception as e:
-        print("Gemini error:", e)
-        response = "There was an error decoding the Gemini response."
+    if not query or query.strip() == "":
+        error_msg = "I didn't catch that. Could you please repeat?"
+        eel.DisplayMessage(error_msg)  # Show in UI
+        return error_msg
         
-    # Speak karnyapurvi response madhun '*' kadhun taka
-    cleaned_response = response.replace("*", "")
+    user_input = query.lower()
     
-    print("Original Response:", response) # Original response console var dakhva
-    speak(cleaned_response) # Aata FAKT CLEAN KELELA RESPONSE BOLAYLA DYA
+    # Handle specific greetings
+    if any(greeting in user_input for greeting in ["hello zia", "hi zia", "hey zia"]):
+        response = "I'm doing great, thank you for asking! How about you?"
+        eel.DisplayMessage(response)  # Show in UI
+        speak(response.replace("#", ""))  # Remove # before speaking
+        return response
     
-    return response
+    # Show thinking message in UI
+    eel.DisplayMessage("Thinking...")
+    
+    # Check if we have a valid API key
+    if not GEMINI_API_KEY:
+        error_msg = "Gemini API key is not configured. Please set it in the .env file."
+        print(error_msg)
+        eel.DisplayMessage(error_msg)  # Show in UI
+        speak("I'm sorry, but I can't connect to the AI service right now. Please check my configuration.")
+        return error_msg
+    
+    try:
+        # Get list of available models
+        try:
+            available_models = genai.list_models()
+            model_names = [m.name for m in available_models if 'generateContent' in m.supported_generation_methods]
+            
+            if not model_names:
+                error_msg = "No suitable Gemini models found with generateContent support"
+                print(error_msg)
+                eel.DisplayMessage(error_msg)  # Show in UI
+                speak("I'm sorry, but I can't find a suitable AI model right now.")
+                return error_msg
+                
+            # Try to find a working model
+            working_model = None
+            response = None
+            for model_name in model_names:
+                try:
+                    # Extract just the model name without the full path
+                    short_name = model_name.split('/')[-1]
+                    if short_name.startswith('gemini'):
+                        model = genai.GenerativeModel(short_name)
+                        response_obj = model.generate_content(user_input)
+                        response = response_obj.text
+                        if response:
+                            working_model = short_name
+                            break
+                except Exception as e:
+                    print(f"Tried {model_name} but got error: {str(e)}")
+                    continue
+            
+            if not working_model or not response:
+                error_msg = "Could not find a working Gemini model or get a valid response"
+                print(error_msg)
+                eel.DisplayMessage(error_msg)  # Show in UI
+                speak("I'm having trouble connecting to the AI service right now.")
+                return error_msg
+                
+            print(f"Using model: {working_model}")
+            
+            # Clean and process the response
+            cleaned_response = response.replace("*", "").strip()
+            
+            # Display the response in the UI
+            eel.DisplayMessage(cleaned_response)  # Show in UI
+            
+            # Speak the response after removing #
+            speak(cleaned_response.replace("#", ""))
+            
+            return cleaned_response
+            
+        except Exception as e:
+            error_msg = f"Error initializing Gemini: {str(e)}"
+            print(error_msg)
+            eel.DisplayMessage(error_msg)  # Show in UI
+            speak("I'm having trouble connecting to the AI service right now.")
+            return error_msg
+        
+    except Exception as e:
+        error_msg = f"Unexpected error: {str(e)}"
+        print(error_msg)
+        speak("Sorry, I encountered an unexpected error. Please try again.")
+        return error_msg
 
 def makeCall(name, mobileNo):
-    mobileNo =mobileNo.replace(" ", "")
-    speak("Calling "+name)
-    command = 'adb shell am start -a android.intent.action.CALL -d tel:'+mobileNo
-    os.system(command)
+    mobileNo = mobileNo.replace(" ", "")
+    speak(f"Mobile calling is disabled. Would have called {name} at {mobileNo}")
 
 def sendMessage(message, mobileNo, name):
-    from engine.helper import replace_spaces_with_percent_s, goback, keyEvent, tapEvents, adbInput
-    message = replace_spaces_with_percent_s(message)
-    mobileNo = replace_spaces_with_percent_s(mobileNo)
-    speak("sending message")
-    goback(4)
-    time.sleep(1)
-    keyEvent(3)
-    tapEvents(473.0, 2490.3)
-    tapEvents(954.7, 2528.1)
-    adbInput(mobileNo)
-    tapEvents(396.5, 563.5)
-    tapEvents(315.0, 2557.6)
-    adbInput(message)
-    tapEvents(1105.5, 1548.4)
-    speak("message send successfully to "+name)
+    speak(f"Mobile messaging is disabled. Would have sent to {name} at {mobileNo}: {message}")
+    speak("Message sending functionality requires mobile device connection which is currently disabled")
