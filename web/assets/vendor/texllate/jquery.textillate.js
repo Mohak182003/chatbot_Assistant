@@ -14,7 +14,7 @@
     if (str !== "true" && str !== "false") return str;
     return (str === "true");
   };
-
+  
   // custom get data api method
   function getData (node) {
     var attrs = node.attributes || []
