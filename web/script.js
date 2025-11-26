@@ -180,12 +180,7 @@ function canvasApp() {
 				p.z += p.velZ;
 			}
 
-			/*
-			We are doing two things here to calculate display coordinates.
-			The whole display is being rotated around a vertical axis, so we first calculate rotated coordinates for
-			x and z (but the y coordinate will not change).
-			Then, we take the new coordinates (rotX, y, rotZ), and project these onto the 2D view plane.
-			*/
+
 			rotX = cosAngle * p.x + sinAngle * (p.z - sphereCenterZ);
 			rotZ = -sinAngle * p.x + cosAngle * (p.z - sphereCenterZ) + sphereCenterZ;
 			m = radius_sp * fLen / (fLen - rotZ);
