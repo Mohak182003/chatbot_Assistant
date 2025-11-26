@@ -213,3 +213,4 @@ def makeCall(name, mobileNo):
 def sendMessage(message, mobileNo, name):
     speak(f"Mobile messaging is disabled. Would have sent to {name} at {mobileNo}: {message}")
     speak("Message sending functionality requires mobile device connection which is currently disabled")
+
